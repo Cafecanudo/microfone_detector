@@ -187,11 +187,6 @@ int main() {
         printf("Erro ao iniciar stream: %s\n", Pa_GetErrorText(err));
         return 1;
     }
-
-    printf("Detecção de fala iniciada.\n");
-    printf("Níveis de volume:\n");
-    printf("0%%   10   20   30   40   50   60   70   80   90   100%%\n");
-    printf("Pressione Enter para encerrar.\n");
     getchar();
 
     err = Pa_StopStream(stream);
