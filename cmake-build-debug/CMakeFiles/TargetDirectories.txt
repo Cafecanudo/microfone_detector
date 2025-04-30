@@ -1,3 +1,0 @@
-/home/makoto/CLionProjects/border-windows/cmake-build-debug/CMakeFiles/microphone_detector.dir
-/home/makoto/CLionProjects/border-windows/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/makoto/CLionProjects/border-windows/cmake-build-debug/CMakeFiles/rebuild_cache.dir
