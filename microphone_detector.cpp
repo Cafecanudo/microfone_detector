@@ -14,7 +14,8 @@
 #define THRESHOLD 0.01 // Ajuste este valor conforme necessário
 #define BORDER_THICKNESS 10 // Espessura da borda verde em pixels
 #define BORDER_TRANSPARENCY 0.5 // Transparencia
-#define BORDER_COLOR 0x00FF00 //Cor da borda
+#define BORDER_COLOR_INICIAL 0xFF0000 //Cor da borda inicial
+#define BORDER_COLOR_GREEN 0x00FF00 //Cor da borda verder
 
 typedef struct {
     int frameIndex;
@@ -27,6 +28,8 @@ typedef struct {
 std::atomic g_border_showing(false);
 std::atomic<Display *> g_display(nullptr);
 std::atomic<Window> g_window(NULL);
+std::atomic g_first_detect(false);
+std::atomic g_window_color(NULL);
 
 static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
@@ -50,6 +53,19 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
 
     if (rms > THRESHOLD) {
         if (!data->speechDetected) {
+            if (!g_first_detect.load()) {
+                XUnmapWindow(g_display.load(), g_window.load());
+                XFlush(g_display.load());
+
+                // Muda a cor para verde
+                XSetWindowAttributes attr;
+                attr.override_redirect = True;
+                attr.background_pixel = g_window_color.load();
+
+                XChangeWindowAttributes(g_display.load(), g_window.load(), CWBackPixel, &attr);
+                XClearWindow(g_display.load(), g_window.load());
+                g_first_detect.store(true);
+            }
             XMapWindow(g_display.load(), g_window.load());
 
             // printf("\nFala detectada! (Nível: %.6f - %d%%)\n", rms, (int) (displayVolume * 100));
@@ -113,12 +129,14 @@ int main() {
     const int screen_height = DisplayHeight(display, screen);
 
     constexpr short int border_width = BORDER_THICKNESS;
-    constexpr unsigned long border_color = BORDER_COLOR;
+    constexpr unsigned long border_color_yellow = BORDER_COLOR_INICIAL;
+    constexpr unsigned long border_color_green = BORDER_COLOR_GREEN;
     constexpr float transparency = BORDER_TRANSPARENCY;
 
+    g_window_color.store(border_color_green);
     XSetWindowAttributes attr;
     attr.override_redirect = True;
-    attr.background_pixel = border_color;
+    attr.background_pixel = border_color_yellow;
 
     Window window = XCreateWindow(
         display, root,
@@ -140,7 +158,9 @@ int main() {
     XFixesSetWindowShapeRegion(display, window, ShapeInput, 0, 0, region);
     XFixesDestroyRegion(display, region);
 
-    XRectangle rect_outer = {0, 0, static_cast<unsigned short>(screen_width), static_cast<unsigned short>(screen_height)};
+    XRectangle rect_outer = {
+        0, 0, static_cast<unsigned short>(screen_width), static_cast<unsigned short>(screen_height)
+    };
     XRectangle rect_inner = {
         border_width, border_width,
         static_cast<unsigned short>(screen_width - 2 * border_width),
@@ -162,8 +182,8 @@ int main() {
     XDestroyRegion(region_border);
 
     XMapWindow(display, window);
-
     XRaiseWindow(display, window);
+    XFlush(display);
 
     g_display.store(display);
     g_window.store(window);
