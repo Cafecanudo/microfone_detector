@@ -10,6 +10,6 @@ OBS: Ate o momento esta versao funciona somente em Linux (Mint e Ubuntu)
 ```
 sudo apt-get install libx11-dev libxfixes-dev libxext-dev
 sudo apt-get install libasound-dev portaudio19-dev
-
-
 ```
+
+![demo.png](demo.png)
